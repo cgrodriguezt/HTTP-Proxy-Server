@@ -1,0 +1,405 @@
+# HTTP Proxy Server - Windows Executable
+
+## 📋 Description
+
+This project provides an HTTP proxy server compiled as a Windows executable that runs completely in the background with no visible console.
+
+## ✨ Features
+
+- ✅ **Standalone executable**: No Python installation required
+- ✅ **No visible console**: Runs as a background service
+- ✅ **Persistent sessions**: Automatically maintains cookies and authentication
+- ✅ **Full REST API**: Endpoints for login, proxy, and health check
+- ✅ **Advanced session management**: Subscribe/unsubscribe with automatic middleware
+- ✅ **Flexible configuration**: .env files and environment variables support
+- ✅ **Automatic cleanup**: Automatic expired session removal
+- ✅ **Integrated documentation**: Swagger UI available at `/docs`
+- ✅ **Detailed logging**: Automatic logs in `.log` file
+- ✅ **Optimized size**: Only 11.4 MB including all dependencies
+
+## 🚀 Quick Start
+
+### Option 1: Run directly
+```bash
+# Run the server (no console)
+HttpProxyServer.exe
+```
+
+## 🌐 Available Endpoints
+
+
+### 📊 Health Check
+```http
+GET http://localhost:8000/health
+```
+
+### 🔗 Subscribe / Create Session
+```http
+POST http://localhost:8000/subscribe
+Content-Type: application/json
+
+{
+  "user_data": {
+    "username": "optional_user",
+    "department": "sales"
+  }
+}
+```
+> Creates a new personalized session. The `user_data` parameter is optional and allows storing additional user information.
+
+### 🚫 Unsubscribe / Delete Session
+```http
+DELETE http://localhost:8000/unsubscribe/{session_id}
+```
+> Removes a specific session from the system. Useful for manual cleanup or forced logout.
+
+### 🔐 Login / Authentication
+```http
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "url": "https://sistema.empresa.com/login",
+  "method": "POST",
+  "data": {
+    "username": "user",
+    "password": "password"
+  },
+  "headers": {
+    "Content-Type": "application/x-www-form-urlencoded"
+  }
+}
+```
+
+### � Logout / Session Termination
+```http
+POST http://localhost:8000/logout
+```
+
+### �🔄 Proxy / Request Forwarding
+```http
+POST http://localhost:8000/forward
+Content-Type: application/json
+
+{
+  "url": "https://api.empresa.com/datos",
+  "method": "GET",
+  "headers": {
+    "Accept": "application/json"
+  }
+}
+```
+
+### 🛠️ Set Headers / Set Session Headers
+```http
+POST http://localhost:8000/set-headers
+Content-Type: application/json
+
+{
+  "X-Custom-Header": "CustomValue",
+  "Authorization": "Bearer token123"
+}
+```
+> Allows you to define custom headers that will be included in all future proxy requests. Useful for authentication or corporate header requirements.
+
+### 🗂️ Get Session Headers
+```http
+POST http://localhost:8000/get-headers
+```
+Returns all headers currently configured in the proxy HTTP session.
+
+### 🍪 Get Session Cookies
+```http
+POST http://localhost:8000/get-cookies
+```
+Returns all cookies stored in the current proxy session.
+
+
+### 📥 File Download Proxy
+```http
+POST http://localhost:8000/dowwnload
+Content-Type: application/json
+
+{
+  "url": "https://files.company.com/download/file.zip",
+  "method": "GET",
+  "headers": {"Accept": "application/octet-stream"}
+}
+```
+Returns the requested file as a direct download (binary stream). Use this endpoint to download documents, images, or any file type while maintaining session and authentication.
+
+**Example using curl:**
+```bash
+curl -X POST "http://localhost:5003/dowwnload" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://files.company.com/download/file.zip",
+    "method": "GET"
+  }' --output file.zip
+```
+
+---
+#### 🆕 New method: `/set-headers`
+
+This endpoint allows you to set **custom HTTP headers** that will be automatically included in all future session requests. It's ideal for adding authentication tokens, corporate headers, or any information that should persist in proxied requests.
+
+**Usage example:**
+```http
+POST /set-headers
+{
+  "Authorization": "Bearer token123",
+  "X-Custom-Header": "CustomValue"
+}
+```
+
+**Benefits:**
+- Centralizes authentication and header management.
+- Facilitates integration with enterprise APIs.
+- Allows header changes without restarting the session.
+
+## 📚 Interactive Documentation
+
+Once the server is running, access:
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Health Check**: http://localhost:8000/health
+
+## 🔧 Advanced Configuration
+
+### Configuration with .env File
+
+Create a `.env` file in the same folder as the executable for automatic configuration:
+
+```env
+# Server settings
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+LOG_LEVEL=info
+RELOAD=false
+WORKERS=1
+ACCESS_LOG=false
+
+# Session settings
+SESSION_TIMEOUT=600
+CLEANUP_INTERVAL=300
+```
+
+### Environment Variables
+
+You can also configure the server using environment variables:
+
+```bash
+# Set host and port
+set SERVER_HOST=0.0.0.0
+set SERVER_PORT=9000
+
+# Set logging level
+set LOG_LEVEL=debug
+
+# Configure sessions
+set SESSION_TIMEOUT=1200
+set CLEANUP_INTERVAL=600
+
+# Enable HTTP access logs
+set ACCESS_LOG=true
+
+# Run server
+HttpProxyServer.exe
+```
+
+### Configuration File
+
+Create a `.env` file in the same folder as the executable:
+
+```env
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+LOG_LEVEL=info
+ACCESS_LOG=false
+RELOAD=false
+WORKERS=1
+SESSION_TIMEOUT=600
+CLEANUP_INTERVAL=300
+```
+
+## 📝 Logs and Debugging
+
+### Log Location
+- **Log file**: `HttpProxyServer.log` (same folder as the .exe)
+
+### Log Levels
+- `debug`: Very detailed information
+- `info`: General information (default)
+- `warning`: Only warnings and errors
+- `error`: Errors only
+
+### Log Example
+```
+2026-01-15 20:49:00,123 [INFO] __main__ - FastAPI application initialized successfully
+2026-01-15 20:49:00,124 [INFO] __main__ - HTTP session configured with User-Agent: Mozilla/5.0...
+2026-01-15 20:49:01,456 [INFO] __main__ - Starting service health check
+2026-01-15 20:49:01,789 [INFO] __main__ - Health check successful - Internet available
+```
+
+### Stopping the Server
+1. **Task Manager**:
+   - `Ctrl + Shift + Esc`
+   - Find "HttpProxyServer.exe"
+   - End process
+
+2. **Command line**:
+   ```bash
+   taskkill /f /im HttpProxyServer.exe
+   ```
+
+3. **PowerShell**:
+   ```powershell
+   Get-Process -Name "HttpProxyServer" | Stop-Process -Force
+   ```
+
+### Check if Running
+```bash
+# Check process
+tasklist | findstr HttpProxyServer
+
+# Check connectivity
+curl http://localhost:8000/health
+```
+
+
+### 🌀 Typical Workflow
+
+#### 0. Create Session (New)
+```bash
+curl -X POST "http://localhost:8000/subscribe" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_data": {
+      "username": "corporate_user",
+      "department": "IT"
+    }
+  }'
+```
+
+#### 1. Authentication
+```bash
+curl -X POST "http://localhost:8000/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://sistema.empresa.com/login",
+    "method": "POST",
+    "data": {
+      "username": "my_user",
+      "password": "my_password"
+    }
+  }'
+```
+
+#### 2. Make Authenticated Requests
+```bash
+curl -X POST "http://localhost:8000/forward" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://sistema.empresa.com/api/datos",
+    "method": "GET"
+  }'
+```
+
+#### 3. Download Files (NEW)
+```bash
+curl -X POST "http://localhost:8000/dowwnload" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://files.company.com/download/file.zip",
+    "method": "GET"
+  }' --output file.zip
+```
+
+#### 0. Set Custom Headers (optional)
+```bash
+curl -X POST "http://localhost:8000/set-headers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "X-Custom-Header": "CustomValue",
+    "Authorization": "Bearer token123"
+  }'
+```
+
+#### 4. Logout (Optional)
+```bash
+curl -X POST "http://localhost:8000/logout"
+```
+
+## 🚨 Troubleshooting
+
+### Port Already in Use
+```
+System error when starting server: [WinError 10048]
+Only one usage of each socket address (protocol/network address/port) is normally permitted
+```
+
+**Solution:**
+1. Change the port: `set SERVER_PORT=8080`
+2. Or terminate the existing process: `taskkill /f /im HttpProxyServer.exe`
+
+### Permission Error
+```
+System error when starting server: [WinError 5] Access is denied
+```
+
+**Solution:**
+1. Run as Administrator
+2. Or use a port above 1024
+
+### No Internet Connectivity
+```
+{
+  "status": "Service Unavailable",
+  "internet": false,
+  "detail": "Timeout connecting to google.com"
+}
+```
+
+**Solution:**
+1. Check your internet connection
+2. Check corporate proxy configuration
+3. Check firewall
+
+## 🔐 Security
+
+- ✅ **SSL/TLS**: Full HTTPS support
+- ✅ **Input validation**: Robust validation with Pydantic V2
+- ✅ **Audit logging**: Complete record of all operations
+- ✅ **Security headers**: User-Agent and corporate headers
+- ✅ **Timeouts**: Configurable to prevent DoS attacks
+
+## 📞 Support
+
+For issues or questions:
+1. Check the logs in `HttpProxyServer.log`
+2. Review the documentation at `/docs`
+3. Contact the developer: Raul Mauricio Uñate Castro
+
+## 📝 Developing New Features
+
+1. Clone the repository
+```bash
+git clone .....
+cd http-proxy-server
+```
+
+2. Create a virtual environment and install dependencies
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+3. Modify the code in `server.py`
+
+---
+
+**Version**: 3.0.0  
+**Date**: January 20, 2026  
+**Compatible with**: Windows 10/11, Server 2016+
